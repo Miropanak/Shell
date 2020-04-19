@@ -9,7 +9,8 @@ void help_msg()
         printf("Pouzitie: \n");
 }
 
-void quit();
-
-void halt();
+void quit()
+{
+    printf("quit\n");
+}
 

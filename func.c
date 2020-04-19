@@ -8,6 +8,17 @@ void error(char * msg)
         printf("Error: %s\n", msg);
 }
 
+bool check_builtin(char * command)
+{
+        if(strcmp(command, "help") == 0)
+                return true;
+        else if(strcmp(command, "quit") == 0)
+                return true
+        else if(strcmp(command, "halt") == 0)
+                return true;
+        else return false;
+}
+
 bool is_number(char * num)
 {
         int i;
