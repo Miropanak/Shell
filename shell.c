@@ -8,7 +8,7 @@ int main(int argc, char **argv)
         char *sock_path;
 
         if(check_args(argc, argv, &port, sock_path) == -1){
-                perror("check_args()");
+                error("Invalid Arguments");
                 return -1;
         }
 
