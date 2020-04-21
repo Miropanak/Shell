@@ -50,13 +50,22 @@ bool check_sock_path(char * sock_path)
                 error("Socket path length exceeded");
                 return false;
         }
-        /*sem asi este dpolnit skontrolovanie ci existuje a ak neexistuje
-        tak ho treba vytvorit a dalej vo funkcii kde budem nastavoval socket*/
         return true;        
 
 }
 
-int check_args(int argc, char **argv, int * port, char * sock_path)
+//funkcia zisti vyskyt prislusneho prepinaca v poli argumnetov
+bool find_arg(int argc, char ** args, char *arg)
+{
+        int i;
+        for(i = 1; i < argc; i++){
+                if(strcmp(args[i], arg) == 0)
+                        return true;
+        }
+        return false;
+}
+
+int check_args(int argc, char **argv, int * port, char * sock_path, int * client)
 {
         int i;
         for(i = 1; i < argc; i++){
@@ -66,6 +75,7 @@ int check_args(int argc, char **argv, int * port, char * sock_path)
                         if(i+1 < argc && check_port(argv[i+1])){
                                 *port = atoi(argv[i+1]);
                                 i++;
+                                continue;
                         }
                         else{
                                 error("Invalid port Number");
@@ -74,18 +84,40 @@ int check_args(int argc, char **argv, int * port, char * sock_path)
                 }
                 else if(strcmp(argv[i], "-u") == 0){
                         if(i+1 < argc && check_sock_path(sock_path)){
-                                strcpy(argv[i+1], sock_path);
-                                return 0;
+                                strcpy(sock_path, argv[++i]);
+                                continue;
                         }
                         else{
                                 error("Invalid socket path");
                                 return -1;
                         }
                 }
-                else{
-                       return -1; 
+                else if(strcmp(argv[i], "-c") == 0 && (find_arg(argc, argv, "-p") || find_arg(argc, argv, "-u"))){
+                        *client = 1;
+                        printf("tusom\n");
                 }
-                
+
+                else if(((strcmp(argv[i], "-help") == 0) && find_arg(argc, argv, "-c")) || ((strcmp(argv[i], "-c") == 0) && find_arg(argc, argv, "-help"))){
+                        help_msg();
+                        return -1;
+                }
+                else if(((strcmp(argv[i], "-halt") == 0) && find_arg(argc, argv, "-c")) || ((strcmp(argv[i], "-c") == 0) && find_arg(argc, argv, "-halt"))){
+                        printf("Closing shell...\n");
+                        return -1;
+                }
+                 else if((strcmp(argv[i], "-d") == 0)){
+                        printf("I am deamon");
+                        close(STDIN_FILENO);
+                        close(STDOUT_FILENO);
+                        close(STDERR_FILENO);
+                        sleep(10);
+                        return -1;
+                }
+                else{
+                        error("Invalid Arguments\n");
+                        return -1;
+                }
+
         }
         return 0;
 }

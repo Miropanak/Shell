@@ -228,41 +228,77 @@ int execute_commands(char ** command, char * cmd, int argc)
         return ret_val;
 }
 
-void shell_loop()
+void shell_loop(int port, char * sock_path)
 {
-	char * usr_input;
-	char ** commands = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
-	char ** split_cmd = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
-	char ** atomic_cmd = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
-	int argc, split_argc, atom_argc, i;
-	int state = 1;
-	//bool run_flag = true;
-	//pid_t child_pid;
+        char * usr_input, * cmd = malloc(127*sizeof(char)), buffer[128];
+        char ** commands = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
+        char ** split_cmd = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
+        int argc, split_argc, i, state = 1, connection, read_bytes, sock, c_sock;
+        struct sockaddr_un un_ad;
+        struct sockaddr_in in_ad;
+        if(port == 0 && strlen(sock_path) != 0){
+                printf("Unix socket, %s", sock_path);
+                if((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0){
+                        perror("socket()\n");
+                        return;
+                }
+                un_ad.sun_family = AF_UNIX;
+                strncpy(un_ad.sun_path, sock_path, 20);
+                unlink(sock_path);
+                if((bind(sock, (struct sockaddr *)&un_ad, sizeof(un_ad))) < 0){
+                        perror("bind()\n");
+                        return;
+                }
+                connection = 1;
+                listen(sock, 5);
+                if((c_sock = accept(sock, NULL, NULL)) < 0){
+                        perror("accept()\n");
+                        return;
+                }
+        }
+        if(port != 0 && strlen(sock_path) == 0){
+                printf("Internet socket\n");
+        }
+        while(state){
+                if(connection == 1){
+                        write(c_sock, print_prompt(), 50);
+                        read_bytes = read(c_sock, &buffer, sizeof(buffer));
+                        buffer[read_bytes] = '\0';
+                        if(strcmp(buffer, "quit") == 0){
+                                printf("Closing connection...\n");
+                                write(c_sock, "Closing connection...\n", 22);
+                                close(c_sock);
+                                close(sock);
+                                connection = 0;
+                                continue;
+                        }
+                        usr_input = buffer;
+                }
+                else{
+                        usr_input = readline(print_prompt());
 
-	while(state){
-		//precitanie riadku
-		usr_input = readline(print_prompt());
-		//stlaceny enter
-		if(strlen(usr_input) == 0){
-				continue;
-		}
-		//prekrocena dlzka prikazu
-		else if(strlen(usr_input) > 128){
-			error("MAX_COMMANS_LEN exceeded");
-			return;
-		}
-		//parsovanie podla \ a #
-		else{
-			//tu musi byt cyklus na vykonanie vsetkych prikazov
-			usr_input = cut_comment(usr_input);
-			commands = pars_args(usr_input, ";", &argc);                    //parsovanie prikazov podla ';'
-			//kazdy zlozeny prikaz v cykle sa rozdeli podla |,<,>
-			for(i = 0; i < argc; i++){
-				split_cmd = pars_args(commands[i], "|<>", &split_argc);
-				print_args(split_cmd, split_argc);
-				state = execute_commands(split_cmd, split_argc);
-			}
-		}
-		free(usr_input);
-	}
+                }
+                printf("usr_input: %d, %s\n", strlen(usr_input), usr_input);
+                //stlaceny enter
+                if(strlen(usr_input) == 0){
+                        continue;
+                }
+                //prekrocena dlzka prikazu
+                else if(strlen(usr_input) > 128){
+                        error("MAX_COMMANS_LEN exceeded");
+                        return;
+                }
+                //parsovanie podla \ a #
+                else{
+                        usr_input = cut_comment(usr_input);
+                        commands = pars_args(usr_input, ";", &argc);                    //parsovanie prikazov podla ';'
+                        //kazdy zlozeny prikaz v cykle sa rozdeli podla |,<,>
+                        for(i = 0; i < argc; i++){
+                                strcpy(cmd, commands[i]);
+                                split_cmd = pars_args(commands[i], "|<>", &split_argc);
+                                state = execute_commands(split_cmd, cmd, split_argc);
+                        }
+                }
+                free(usr_input);
+        }
 }

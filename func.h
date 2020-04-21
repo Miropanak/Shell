@@ -14,7 +14,7 @@ bool check_builtin(char * command);
 bool is_number(char * num);
 bool check_port(char * port_num);
 bool check_sock_path();
-int check_args(int argc, char **argv, int * port, char * sock_path);
+int check_args(int argc, char **argv, int * port, char * sock_path, int * client);
 char * get_user();
 char * get_host();
 char * get_time();
