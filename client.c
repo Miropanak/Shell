@@ -27,15 +27,15 @@ int main(int ac, char **av, char **en) {
         while(running){
                 r = read(s, msg, sizeof(msg));
                 msg[r] = '\0';
-                if(strcmp(msg, "Closing connection...\n") == 0){
-                        running = 0;
-                        break;
-                }
-                do{
-                        printf("Remote@~%s", msg);
-                        buf = readline("");
-                }while(strlen(buf) == 0);
-                write(s, buf, strlen(buf));     // poslanie spravy
+		if(strcmp(msg, "Closing connection...\n") == 0){
+			running = 0;
+			break;
+		}
+               	do{	
+			printf("Remote@~%s", msg);
+			buf = readline("");
+		}while(strlen(buf) == 0);
+		write(s, buf, strlen(buf));     // poslanie spravy
         }
         close(s);
         return 0;

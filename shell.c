@@ -1,9 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include "func.h"
-
-#include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include "func.h"
 
@@ -31,15 +27,15 @@ int main(int argc, char **argv)
 
 /*int main(int argc, char **argv)
 {
-        int port = 0, client;
-        char *sock_path, ;
+	int port = 0, client;
+	char *sock_path, ;
 
-        if(check_args(argc, argv, &port, sock_path) == -1){
-                error("check_args()");
-                return -1;
-        }
+	if(check_args(argc, argv, &port, sock_path) == -1){
+		error("check_args()");
+		return -1;
+	}
 
-        shell_loop();
+	shell_loop();
 
         return 0;
 }*/
