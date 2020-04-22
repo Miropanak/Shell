@@ -69,7 +69,7 @@ bool pipe_redir_out(char * line)
 void print_args(char ** line, int argc)
 {
 	int i;
-	printf("Arguments: �");
+	printf("Arguments: ");
 	for(i = 0; i < argc; i++)
 		printf("%s ", line[i]);
 	printf("\n");

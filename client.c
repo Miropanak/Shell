@@ -19,7 +19,7 @@ void unix_client(char * sock_path)
         memset(&un_ad, '\0', sizeof(un_ad));
         un_ad.sun_family = AF_UNIX;
         strncpy(un_ad.sun_path, sock_path, 20);
-        if((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0){
+        if((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0){
                 perror("socket()");
                 exit(2);
         }

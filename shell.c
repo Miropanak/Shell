@@ -24,9 +24,10 @@ int main(int argc, char **argv)
                 if(mode == 1)
                         unix_client(sock_path); 
                 else
-                        internet_client(port);
+                        internet_client(port, IP_addr);
 
                 free(sock_path);
+                free(IP_addr);
                 port = 0;
                 mode = 0;
                 printf("Remote shell closed %d\n", getpid());

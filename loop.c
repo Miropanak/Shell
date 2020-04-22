@@ -53,7 +53,7 @@ int execute_builtin(char * command)
 	if(strcmp(command, "help") == 0)
 		help_msg();
 	else if(strcmp(command, "quit") == 0)
-		quit();
+		printf("There is no connection to quit.\n");
 	else if(strcmp(command, "halt") == 0)
 		return 0;	
 	else{
@@ -252,25 +252,25 @@ void shell_loop(int port, char * sock_path, char * IP_addr, int mode)
 		unix_addr.sun_family = AF_UNIX;
 		strncpy(unix_addr.sun_path, sock_path, 20);
 		if((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0){
-			perror("socket()\n");
+			perror("socket()");
 			exit(1);
 		}
 		unlink(sock_path);
 		if((bind(sock, (struct sockaddr *)&unix_addr, sizeof(unix_addr))) < 0){
-			perror("bind()\n");
+			perror("bind()");
 			exit(1);
 		}
 		connection = 1;
 		listen(sock, 5);
 		if((c_sock = accept(sock, NULL, NULL)) < 0){
-			perror("accept()\n");
+			perror("accept()");
 			exit(1);
 		}
 	}
 	//set up internet socket for listening
 	if(mode == 4){
 		if((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0){
-			perror("socket()\n");
+			perror("socket()");
 			exit(1);
 		}
 		bzero((char *)&inet_server_addr, sizeof(inet_server_addr));
@@ -283,14 +283,14 @@ void shell_loop(int port, char * sock_path, char * IP_addr, int mode)
             	inet_server_addr.sin_addr.s_addr = inet_addr(IP_addr);
 
 		if((bind(sock, (struct sockaddr *)&inet_server_addr, sizeof(inet_server_addr))) < 0){
-			perror("bind()\n");
+			perror("bind()");
 			exit(1);
 		}
 		connection = 1;
 		listen(sock, 5);
 		client_len = sizeof(inet_client_addr);
 		if((c_sock = accept(sock, (struct sockaddr *)&inet_client_addr, &client_len)) < 0){
-			perror("accept()\n");
+			perror("accept()");
 			exit(1);
 		}
 
