@@ -237,7 +237,7 @@ int execute_commands(char ** command, char * cmd, int argc)
 	return ret_val; 
 }
 
-void shell_loop(int port, char * sock_path)
+void shell_loop(int port, char * sock_path, char * IP_addr, int mode)
 {
 	char * usr_input, * cmd = malloc(127*sizeof(char)), buffer[128];
 	char ** commands = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
@@ -247,15 +247,14 @@ void shell_loop(int port, char * sock_path)
 	struct sockaddr_in inet_server_addr;
 	struct sockaddr_in inet_client_addr;
 	//set up Unix domain socket for listening
-	if(port == 0 && strlen(sock_path) != 0){
-		printf("unix pid: %d\n", getpid());
+	if(mode == 3){
+		bzero((char *)&unix_addr, sizeof(unix_addr));
+		unix_addr.sun_family = AF_UNIX;
+		strncpy(unix_addr.sun_path, sock_path, 20);
 		if((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0){
 			perror("socket()\n");
 			exit(1);
 		}
-		bzero((char *)&unix_addr, sizeof(unix_addr));
-		unix_addr.sun_family = AF_UNIX;
-		strncpy(unix_addr.sun_path, sock_path, 20);
 		unlink(sock_path);
 		if((bind(sock, (struct sockaddr *)&unix_addr, sizeof(unix_addr))) < 0){
 			perror("bind()\n");
@@ -269,8 +268,7 @@ void shell_loop(int port, char * sock_path)
 		}
 	}
 	//set up internet socket for listening
-	if(port != 0 && strlen(sock_path) == 0){
-		printf("inet pid: %d\n", getpid());
+	if(mode == 4){
 		if((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0){
 			perror("socket()\n");
 			exit(1);
@@ -279,7 +277,10 @@ void shell_loop(int port, char * sock_path)
 		bzero((char *)&inet_client_addr, sizeof(inet_client_addr));
 		inet_server_addr.sin_family = AF_INET;
 		inet_server_addr.sin_port = htons(port);
-		inet_server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+		if(strlen(IP_addr) == 0)
+            	inet_server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+        else
+            	inet_server_addr.sin_addr.s_addr = inet_addr(IP_addr);
 
 		if((bind(sock, (struct sockaddr *)&inet_server_addr, sizeof(inet_server_addr))) < 0){
 			perror("bind()\n");

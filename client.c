@@ -16,8 +16,7 @@ void unix_client(char * sock_path)
         char server_msg[64], *buff;
         int sock, read_bytes, running = 1;
         struct sockaddr_un un_ad;
-
-        memset(&un_ad, 0, sizeof(un_ad));
+        memset(&un_ad, '\0', sizeof(un_ad));
         un_ad.sun_family = AF_UNIX;
         strncpy(un_ad.sun_path, sock_path, 20);
         if((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0){
@@ -47,7 +46,7 @@ void unix_client(char * sock_path)
         printf("Client: closed!\n");
 }
 
-void internet_client(int port)
+void internet_client(int port, char * IP_addr)
 {       
         char server_msg[64], *buff;
         int sock, read_bytes, running = 1;
@@ -56,7 +55,11 @@ void internet_client(int port)
         bzero((char*)&in_ad, sizeof(in_ad));
         in_ad.sin_family = AF_INET;
         in_ad.sin_port = htons(port);
-        in_ad.sin_addr.s_addr = inet_addr("127.0.0.1");
+        if(strlen(IP_addr) == 0)
+                in_ad.sin_addr.s_addr = inet_addr("127.0.0.1");
+        else
+                in_ad.sin_addr.s_addr = inet_addr(IP_addr);
+        
         if((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0){
                 perror("socket()");
                 exit(2);

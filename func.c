@@ -134,7 +134,7 @@ bool find_arg(int argc, char ** args, char *arg)
         return false;
 }
 
-int check_args(int argc, char **argv, int * port, char * sock_path, int * client)
+int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_addr, int * mode)
 {
         int i;
         for(i = 1; i < argc; i++){
@@ -142,30 +142,45 @@ int check_args(int argc, char **argv, int * port, char * sock_path, int * client
                         help_msg();
                 else if(strcmp(argv[i], "-p") == 0){
                         if(i+1 < argc && check_port(argv[i+1])){
-                                *port = atoi(argv[i+1]);
-                                i++;
+                                *port = atoi(argv[++i]);
+                                if(*mode != 1 && *mode != 2)
+                                        *mode = 4;
 				continue;
                         }
                         else{
                                 error("Invalid port Number");
-                                return -1;
+                                exit(1);
                         }
                 }
                 else if(strcmp(argv[i], "-u") == 0){
                         if(i+1 < argc && check_sock_path(sock_path)){
                                 strcpy(sock_path, argv[++i]);
+                                if(*mode != 1 && *mode != 2)
+                                        *mode = 3;
                                 continue;
                         }
                         else{
                                 error("Invalid socket path");
-                                return -1;
+                                exit(1);
                         }
                 }
-                else if(strcmp(argv[i], "-c") == 0 && (find_arg(argc, argv, "-p") || find_arg(argc, argv, "-u"))){
-                        *client = 1;
-			printf("tusom\n");
+                else if(strcmp(argv[i], "-i") == 0){
+                        if(i+1 < argc && strlen(argv[i+1]) < 16){
+                                printf("IP adresa %s %d\n", argv[i+1], strlen(argv[i+1]));
+                                strcpy(IP_addr, argv[++i]);
+                                continue;
+                        }
+                        else{
+                                error("Invalid IP adress");
+                                exit(1);
+                        }
                 }
-                
+                else if((strcmp(argv[i], "-c") == 0) && (find_arg(argc, argv, "-p") || find_arg(argc, argv, "-u"))){
+                        if(find_arg(argc, argv, "-u"))
+                                *mode = 1;
+                        else
+                                *mode = 2;	
+                }
                 else if(((strcmp(argv[i], "-help") == 0) && find_arg(argc, argv, "-c")) || ((strcmp(argv[i], "-c") == 0) && find_arg(argc, argv, "-help"))){
                         help();
                         return -1;       
