@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -8,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "func.h"
@@ -72,9 +74,10 @@ int exec_cmd(char * command, int argc)
 		perror("fork()");
 	}
 	else if(child_pid == 0){
-		if(execvp(commands[0], commands) < 0)
+		if(execvp(commands[0], commands) < 0){
 			perror("execvp()");
-		_Exit(EXIT_FAILURE);	
+			_Exit(EXIT_FAILURE);
+		}		
 	}
 	else{
 		waitpid(child_pid, &status, WUNTRACED);
@@ -84,58 +87,60 @@ int exec_cmd(char * command, int argc)
 
 int exec_pipes(char ** command, int argc)
 {
-        int pipe_fd[2], status, argc_num, counter = 0;
-        pid_t child1, child2;
+	int pipe_fd[2], status, argc_num, counter = 0;
+	pid_t child1, child2;
 	printf("%s %s %s %d\n", command[0], command[1], command[2], argc);
-        if(pipe(pipe_fd) < 0){
-                perror("pipe()\n");
-                return 0;
-        }
+	if(pipe(pipe_fd) < 0){
+			perror("pipe()\n");
+			return 0;
+	}
 
-		do{
-			if((child1 = fork()) == 0){
-					char ** cmd = (char **)malloc(MAX_COMMANDS_LEN*sizeof(char*));
-					cmd = pars_args(command[0], " ", &argc_num);
-					dup2(pipe_fd[0], STDIN_FILENO);
-					dup2(pipe_fd[1], STDOUT_FILENO);
-					close(pipe_fd[0]);
-					close(pipe_fd[1]);
-					if(execvp(cmd[counter], cmd) < 0)
-							perror("execvp()");
-					_Exit(EXIT_FAILURE);
-			}
-			else if(child1 < 0){
-					perror("fork()\n");
-					return 0;
-			}
-			else{
-					waitpid(child1, &status, WUNTRACED);
-					counter++;
-			}
-		}while(counter < argc-1);
-		
-		 if((child2 = fork()) == 0){
-				char ** cmd2 = (char **)malloc(MAX_COMMANDS_LEN*sizeof(char*));
-				cmd2 = pars_args(command[1], " ", &argc_num);
+	do{
+		if((child1 = fork()) == 0){
+				char ** cmd = (char **)malloc(MAX_COMMANDS_LEN*sizeof(char*));
+				cmd = pars_args(command[0], " ", &argc_num);
 				dup2(pipe_fd[0], STDIN_FILENO);
-				close(pipe_fd[1]);
+				dup2(pipe_fd[1], STDOUT_FILENO);
 				close(pipe_fd[0]);
-				if(execvp(cmd2[0], cmd2) < 0)
+				close(pipe_fd[1]);
+				if(execvp(cmd[counter], cmd) < 0){
 					perror("execvp()");
+				}
+				_Exit(EXIT_FAILURE);		
+		}
+		else if(child1 < 0){
+				perror("fork()\n");
 				_Exit(EXIT_FAILURE);
+		}
+		else{
+				waitpid(child1, &status, WUNTRACED);
+				counter++;
+		}
+	}while(counter < argc-1);
+	
+		if((child2 = fork()) == 0){
+			char ** cmd2 = (char **)malloc(MAX_COMMANDS_LEN*sizeof(char*));
+			cmd2 = pars_args(command[1], " ", &argc_num);
+			dup2(pipe_fd[0], STDIN_FILENO);
+			close(pipe_fd[1]);
+			close(pipe_fd[0]);
+			if(execvp(cmd2[0], cmd2) < 0){
+				perror("execvp()");
 			}
-			else if(child2 < 0){
-					perror("fork()");
-					return 0;
-			}
-			else{
-					waitpid(child2, &status, WNOHANG);
-			}
+			_Exit(EXIT_FAILURE);	
+		}
+		else if(child2 < 0){
+			perror("fork()");
+			_Exit(EXIT_FAILURE);
+		}
+		else{
+			waitpid(child2, &status, WNOHANG);
+		}
 
-        close(pipe_fd[0]);
-        close(pipe_fd[1]);
+	close(pipe_fd[0]);
+	close(pipe_fd[1]);
 
-        return 1;
+	return 1;
 }
 
 int exec_redirect_inout(char ** command, int argc, int in_out)
@@ -153,37 +158,37 @@ int exec_redirect_inout(char ** command, int argc, int in_out)
 	if(in_out == 0){
 		if((fd = open(file_name, O_RDONLY, S_IRUSR | S_IWUSR)) < 0){
 			perror("open()");
-			return 0;
+			_Exit(EXIT_FAILURE);
 		}	
 	}
 	else if (in_out == 1){
 		if((fd = open(file_name, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR)) < 0){
 			perror("open()");
-			return 0;
+			_Exit(EXIT_FAILURE);
 		}
 	}
 	else
 		return 0;
 		
 	if((child = fork()) == 0){
-               	char ** cmd = (char **)malloc(MAX_COMMANDS_LEN*sizeof(char*));
-               	cmd = pars_args(command[0], " ", &argc_num);
-               	close(in_out);
+		char ** cmd = (char **)malloc(MAX_COMMANDS_LEN*sizeof(char*));
+		cmd = pars_args(command[0], " ", &argc_num);
+		close(in_out);
 		dup(fd);
-		if(execvp(cmd[0], cmd) < 0)
-                       perror("execvp()\n");
-                _Exit(EXIT_FAILURE);
-        }
+		if(execvp(cmd[0], cmd) < 0){
+            perror("execvp()\n");
+			_Exit(EXIT_FAILURE);
+		}
         else if(child < 0){
                 perror("fork()\n");
-                return 0;
+                _Exit(EXIT_FAILURE);
         }
-        else{
-                waitpid(child, &status, WUNTRACED);
+        else
+            waitpid(child, &status, WUNTRACED);
 	}
 	close(fd);
 
-        return 1;
+    return 1;
 }
 
 int execute_commands(char ** command, char * cmd, int argc)
@@ -237,31 +242,57 @@ void shell_loop(int port, char * sock_path)
 	char * usr_input, * cmd = malloc(127*sizeof(char)), buffer[128];
 	char ** commands = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
 	char ** split_cmd = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
-	int argc, split_argc, i, state = 1, connection, read_bytes, sock, c_sock;
-	struct sockaddr_un un_ad;
-	struct sockaddr_in in_ad;
+	int argc, split_argc, i, state = 1, connection = 0, read_bytes, sock, c_sock, client_len;
+	struct sockaddr_un unix_addr;
+	struct sockaddr_in inet_server_addr;
+	struct sockaddr_in inet_client_addr;
+	//set up Unix domain socket for listening
 	if(port == 0 && strlen(sock_path) != 0){
-		printf("Unix socket, %s", sock_path);
-		if((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0){
+		printf("unix pid: %d\n", getpid());
+		if((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0){
 			perror("socket()\n");
-			return;
+			exit(1);
 		}
-		un_ad.sun_family = AF_UNIX;
-		strncpy(un_ad.sun_path, sock_path, 20);
+		bzero((char *)&unix_addr, sizeof(unix_addr));
+		unix_addr.sun_family = AF_UNIX;
+		strncpy(unix_addr.sun_path, sock_path, 20);
 		unlink(sock_path);
-		if((bind(sock, (struct sockaddr *)&un_ad, sizeof(un_ad))) < 0){
+		if((bind(sock, (struct sockaddr *)&unix_addr, sizeof(unix_addr))) < 0){
 			perror("bind()\n");
-			return;
+			exit(1);
 		}
 		connection = 1;
 		listen(sock, 5);
 		if((c_sock = accept(sock, NULL, NULL)) < 0){
 			perror("accept()\n");
-			return;
+			exit(1);
 		}
-	} 
+	}
+	//set up internet socket for listening
 	if(port != 0 && strlen(sock_path) == 0){
-		printf("Internet socket\n");	
+		printf("inet pid: %d\n", getpid());
+		if((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0){
+			perror("socket()\n");
+			exit(1);
+		}
+		bzero((char *)&inet_server_addr, sizeof(inet_server_addr));
+		bzero((char *)&inet_client_addr, sizeof(inet_client_addr));
+		inet_server_addr.sin_family = AF_INET;
+		inet_server_addr.sin_port = htons(port);
+		inet_server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+		if((bind(sock, (struct sockaddr *)&inet_server_addr, sizeof(inet_server_addr))) < 0){
+			perror("bind()\n");
+			exit(1);
+		}
+		connection = 1;
+		listen(sock, 5);
+		client_len = sizeof(inet_client_addr);
+		if((c_sock = accept(sock, (struct sockaddr *)&inet_client_addr, &client_len)) < 0){
+			perror("accept()\n");
+			exit(1);
+		}
+
 	}
 	
 	while(state){
@@ -281,9 +312,7 @@ void shell_loop(int port, char * sock_path)
 		}
 		else{
 			usr_input = readline(print_prompt());
-
 		}
-		printf("usr_input: %d, %s\n", strlen(usr_input), usr_input);
 		//stlaceny enter
 		if(strlen(usr_input) == 0){
 			continue;
@@ -304,7 +333,7 @@ void shell_loop(int port, char * sock_path)
 				state = execute_commands(split_cmd, cmd, split_argc);
 			}
 		}
-		free(usr_input);
+		//free(usr_input);
 	}
 }
 

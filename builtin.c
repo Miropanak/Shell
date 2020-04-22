@@ -9,6 +9,11 @@ void help_msg()
         printf("Pouzitie: \n");
 }
 
+void help()
+{
+        help_msg();
+}
+
 void quit()
 {
 	printf("quit\n");	

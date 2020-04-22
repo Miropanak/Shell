@@ -69,7 +69,7 @@ bool pipe_redir_out(char * line)
 void print_args(char ** line, int argc)
 {
 	int i;
-	printf("Arguments: Â");
+	printf("Arguments: ï¿½");
 	for(i = 0; i < argc; i++)
 		printf("%s ", line[i]);
 	printf("\n");
@@ -167,7 +167,7 @@ int check_args(int argc, char **argv, int * port, char * sock_path, int * client
                 }
                 
                 else if(((strcmp(argv[i], "-help") == 0) && find_arg(argc, argv, "-c")) || ((strcmp(argv[i], "-c") == 0) && find_arg(argc, argv, "-help"))){
-                        help_msg();
+                        help();
                         return -1;       
                 }
                 else if(((strcmp(argv[i], "-halt") == 0) && find_arg(argc, argv, "-c")) || ((strcmp(argv[i], "-c") == 0) && find_arg(argc, argv, "-halt"))){
