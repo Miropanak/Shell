@@ -13,7 +13,7 @@
 
 void unix_client(char * sock_path)
 {
-        char server_msg[64], *buff;
+        char server_msg[4096], *buff;
         int sock, read_bytes, running = 1;
         struct sockaddr_un un_ad;
         memset(&un_ad, '\0', sizeof(un_ad));
@@ -28,7 +28,7 @@ void unix_client(char * sock_path)
                 perror("socket()");
                 exit(2); 
         }
-
+        printf("Remote@~");
         while(running){
                 read_bytes = read(sock, server_msg, sizeof(server_msg));
                 server_msg[read_bytes] = '\0';
@@ -36,10 +36,11 @@ void unix_client(char * sock_path)
 			running = 0;
 			break;
 		}
+                printf("%s", server_msg);
                	do{
-			printf("Remote@~%s", server_msg);
-			buff = readline("");
+			buff = readline(">>>");
 		}while(strlen(buff) == 0);
+                memset(server_msg, '\0', sizeof(server_msg));
 		write(sock, buff, strlen(buff));
         }
         close(sock);
@@ -48,7 +49,7 @@ void unix_client(char * sock_path)
 
 void internet_client(int port, char * IP_addr)
 {       
-        char server_msg[64], *buff;
+        char server_msg[4096], *buff;
         int sock, read_bytes, running = 1;
         struct sockaddr_in in_ad;
 
@@ -69,7 +70,7 @@ void internet_client(int port, char * IP_addr)
                 perror("socket()");
                 exit(2); 
         }
-
+        printf("Remote@~");
         while(running){
                 read_bytes = read(sock, server_msg, sizeof(server_msg));
                 server_msg[read_bytes] = '\0';
@@ -77,10 +78,11 @@ void internet_client(int port, char * IP_addr)
 			running = 0;
 			break;
 		}
-               	do{	
-			printf("Remote@~%s", server_msg);
-			buff = readline("");
+               	printf("%s", server_msg);
+               	do{
+			buff = readline(">>>");
 		}while(strlen(buff) == 0);
+                memset(server_msg, '\0', sizeof(server_msg));
 		write(sock, buff, strlen(buff));
         }
         close(sock);

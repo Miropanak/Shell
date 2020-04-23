@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include "func.h"
 
 int main(int argc, char **argv)
@@ -31,8 +32,9 @@ int main(int argc, char **argv)
                 port = 0;
                 mode = 0;
                 printf("Remote shell closed %d\n", getpid());
+                return 0;
         }
-
+        printf("mode %d\n", mode);
         shell_loop(port, sock_path, IP_addr, mode);
 
         return 0;

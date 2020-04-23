@@ -16,14 +16,6 @@ help    zobrazenie manuálu k programu
 quit    klient ukončí spojenie so serverom, na ktorom bol pripojený
 halt    ukončenie programu
 
-Interpretácia špeciálnych znakov:
- #  
- ;
- <
- >
- |
- \
-
 Prednastavený prompt:
 
 Splnené bonusové úlohy:
@@ -45,15 +37,15 @@ očakávať pripojenie
 
 Funkcia na vypísanie manuálu použitia sa nachádza v externom súbore builtin.c, ktorý je prilinkovaný k hlavnému programu. 
 
-//13.	(5 bodov) Ak je niektoré spojenie nečinné zadanú dobu, bude zrušené.
-
 14.	(2 body) Príkazy musia byť rozoznané aj ako argumenty na príkazovom riadku v kombinácii s prepínačom "-c" (interné príkazy ako prepínače,
 -halt, -help), vykonajú sa jednorazovo a program sa ukončí.
 
 Po zadaní príkazu:  "./shell -c -help" sa vypíše manuál použitia a program sa ukončí.
                     "./shell -c -halt" sa program spustí a automaticky sa hneď vzpne.
 
-//15. (4 body) Program s prepínačom "-d" sa bude správať ako démon (neobsadí terminál), nebude používať štandardný vstup a výstup.
+15. (4 body) Program s prepínačom "-d" sa bude správať ako démon (neobsadí terminál), nebude používať štandardný vstup a výstup.
+
+
 
 16. (2 body) Poriadny Makefile.
 

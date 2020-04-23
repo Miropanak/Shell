@@ -117,8 +117,6 @@ bool check_sock_path(char * sock_path)
                 error("Socket path length exceeded");
                 return false;
         }
-        /*sem asi este dpolnit skontrolovanie ci existuje a ak neexistuje
-        tak ho treba vytvorit a dalej vo funkcii kde budem nastavoval socket*/
         return true;        
 
 }
@@ -127,7 +125,6 @@ bool find_arg(int argc, char ** args, char *arg)
 {
         int i;
         for(i = 1; i < argc; i++){
-		printf("%s == %s\n", args[i], arg);
                 if(strcmp(args[i], arg) == 0)
                         return true;
         }
@@ -143,8 +140,10 @@ int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_ad
                 else if(strcmp(argv[i], "-p") == 0){
                         if(i+1 < argc && check_port(argv[i+1])){
                                 *port = atoi(argv[++i]);
-                                if(*mode != 1 && *mode != 2)
+                                if(*mode != 1 && *mode != 2 && !find_arg(argc, argv, "-d"))
                                         *mode = 4;
+                                else if(*mode != 1 && *mode != 2 && find_arg(argc, argv, "-d"))
+                                        *mode = 6;
 				continue;
                         }
                         else{
@@ -155,8 +154,10 @@ int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_ad
                 else if(strcmp(argv[i], "-u") == 0){
                         if(i+1 < argc && check_sock_path(sock_path)){
                                 strcpy(sock_path, argv[++i]);
-                                if(*mode != 1 && *mode != 2)
+                                if(*mode != 1 && *mode != 2 && !find_arg(argc, argv, "-d"))
                                         *mode = 3;
+                                else if(*mode != 1 && *mode != 2 && find_arg(argc, argv, "-d"))
+                                        *mode = 5;
                                 continue;
                         }
                         else{
@@ -190,12 +191,11 @@ int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_ad
                         return -1;
                 }
 		else if((strcmp(argv[i], "-d") == 0)){
-                        printf("I am deamon");
-                        close(STDIN_FILENO);
-                        close(STDOUT_FILENO);
-                        close(STDERR_FILENO);
-                        sleep(10);
-                        return -1;
+                        create_deamon();
+                        if(!find_arg(argc, argv, "-u") && !find_arg(argc, argv, "-i")){
+                                exit(1);
+                        }
+                        printf("mode == %d %d\n", *mode, getpid());       
                 }
                 else{
 			error("Invalid Arguments\n");

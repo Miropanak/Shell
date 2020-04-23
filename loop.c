@@ -17,6 +17,8 @@
 #define MAX_COMMANDS_LEN 128
 #define MAX_NUM_OF_COMMANDS 20
 
+int c_sock;
+
 char ** pars_args(char * line, char * separator, int *argc)
 {
 	int index = 0;
@@ -89,7 +91,7 @@ int exec_pipes(char ** command, int argc)
 {
 	int pipe_fd[2], status, argc_num, counter = 0;
 	pid_t child1, child2;
-	printf("%s %s %s %d\n", command[0], command[1], command[2], argc);
+	//printf("%s %s %s %d\n", command[0], command[1], command[2], argc);
 	if(pipe(pipe_fd) < 0){
 			perror("pipe()\n");
 			return 0;
@@ -207,22 +209,22 @@ int execute_commands(char ** command, char * cmd, int argc)
 	}
 	else if(argc == 2){
 		if(redirect_output(cmd) && !found_pipes(cmd) && !redirect_input(cmd)){
-        		printf("a > b\n");
+        		//printf("a > b\n");
 			ret_val = exec_redirect_inout(command, argc, 1);
     		}
     		//<
     		else if(redirect_input(cmd) && !found_pipes(cmd) && !redirect_output(cmd)){
-        		printf("a < b\n");
+        		//printf("a < b\n");
     			ret_val = exec_redirect_inout(command, argc, 0);
 		}
     		//||>
     		else if(redirect_output(cmd) && found_pipes(cmd) && !redirect_input(cmd) && pipe_redir_out(cmd)){
-        		printf("a | b > c\n");
+        		//printf("a | b > c\n");
 
     		}
     		//|||
     		else if(found_pipes(cmd) && !redirect_output(cmd) && !redirect_input(cmd)){
-        		printf("a | b | c\n");
+        		//printf("a | b | c\n");
 			ret_val = exec_pipes(command, argc);
     		}
     		else{
@@ -242,12 +244,12 @@ void shell_loop(int port, char * sock_path, char * IP_addr, int mode)
 	char * usr_input, * cmd = malloc(127*sizeof(char)), buffer[128];
 	char ** commands = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
 	char ** split_cmd = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
-	int argc, split_argc, i, state = 1, connection = 0, read_bytes, sock, c_sock, client_len;
+	int argc, split_argc, i, state = 1, connection = 0, read_bytes, sock, client_len;
 	struct sockaddr_un unix_addr;
 	struct sockaddr_in inet_server_addr;
 	struct sockaddr_in inet_client_addr;
 	//set up Unix domain socket for listening
-	if(mode == 3){
+	if(mode == 3 || mode == 5){
 		bzero((char *)&unix_addr, sizeof(unix_addr));
 		unix_addr.sun_family = AF_UNIX;
 		strncpy(unix_addr.sun_path, sock_path, 20);
@@ -266,9 +268,14 @@ void shell_loop(int port, char * sock_path, char * IP_addr, int mode)
 			perror("accept()");
 			exit(1);
 		}
+		if(mode == 5){
+			dup2(c_sock, STDOUT_FILENO);
+			write(c_sock, print_prompt(), 50);
+		}
+			
 	}
 	//set up internet socket for listening
-	if(mode == 4){
+	if(mode == 4 || mode == 6){
 		if((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0){
 			perror("socket()");
 			exit(1);
@@ -293,21 +300,26 @@ void shell_loop(int port, char * sock_path, char * IP_addr, int mode)
 			perror("accept()");
 			exit(1);
 		}
-
+		if(mode == 6){
+			dup2(c_sock, STDOUT_FILENO);
+			write(c_sock, print_prompt(), 50);
+		}	
 	}
-	
+
 	while(state){
 		if(connection == 1){
-			write(c_sock, print_prompt(), 50);
+			if(mode == 3 || mode == 4)
+				write(c_sock, print_prompt(), 50);
 			read_bytes = read(c_sock, &buffer, sizeof(buffer));
 			buffer[read_bytes] = '\0';
 			if(strcmp(buffer, "quit") == 0){
-				printf("Closing connection...\n");
 				write(c_sock, "Closing connection...\n", 22);
-				close(c_sock);
 				close(sock);
+				close(c_sock);
 				connection = 0;
-				continue;
+				if(mode == 3 || mode == 4)
+					continue;
+				return;
 			}
 			usr_input = buffer;
 		}
@@ -334,7 +346,7 @@ void shell_loop(int port, char * sock_path, char * IP_addr, int mode)
 				state = execute_commands(split_cmd, cmd, split_argc);
 			}
 		}
-		//free(usr_input);
+		free(usr_input);
 	}
 }
 
