@@ -31,10 +31,9 @@ int main(int argc, char **argv)
                 free(IP_addr);
                 port = 0;
                 mode = 0;
-                printf("Remote shell closed %d\n", getpid());
+                printf("Remote shell closed\n");
                 return 0;
         }
-        printf("mode %d\n", mode);
         shell_loop(port, sock_path, IP_addr, mode);
 
         return 0;

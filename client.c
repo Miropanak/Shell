@@ -44,7 +44,6 @@ void unix_client(char * sock_path)
 		write(sock, buff, strlen(buff));
         }
         close(sock);
-        printf("Client: closed!\n");
 }
 
 void internet_client(int port, char * IP_addr)
@@ -86,5 +85,4 @@ void internet_client(int port, char * IP_addr)
 		write(sock, buff, strlen(buff));
         }
         close(sock);
-        printf("Client: closed!\n");
 }

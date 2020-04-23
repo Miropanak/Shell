@@ -167,7 +167,6 @@ int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_ad
                 }
                 else if(strcmp(argv[i], "-i") == 0){
                         if(i+1 < argc && strlen(argv[i+1]) < 16){
-                                printf("IP adresa %s %d\n", argv[i+1], strlen(argv[i+1]));
                                 strcpy(IP_addr, argv[++i]);
                                 continue;
                         }
@@ -195,7 +194,6 @@ int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_ad
                         if(!find_arg(argc, argv, "-u") && !find_arg(argc, argv, "-i")){
                                 exit(1);
                         }
-                        printf("mode == %d %d\n", *mode, getpid());       
                 }
                 else{
 			error("Invalid Arguments\n");

@@ -17,8 +17,6 @@
 #define MAX_COMMANDS_LEN 128
 #define MAX_NUM_OF_COMMANDS 20
 
-int c_sock;
-
 char ** pars_args(char * line, char * separator, int *argc)
 {
 	int index = 0;
@@ -210,7 +208,7 @@ int execute_commands(char ** command, char * cmd, int argc)
 	else if(argc == 2){
 		if(redirect_output(cmd) && !found_pipes(cmd) && !redirect_input(cmd)){
         		//printf("a > b\n");
-			ret_val = exec_redirect_inout(command, argc, 1);
+				ret_val = exec_redirect_inout(command, argc, 1);
     		}
     		//<
     		else if(redirect_input(cmd) && !found_pipes(cmd) && !redirect_output(cmd)){
@@ -244,7 +242,7 @@ void shell_loop(int port, char * sock_path, char * IP_addr, int mode)
 	char * usr_input, * cmd = malloc(127*sizeof(char)), buffer[128];
 	char ** commands = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
 	char ** split_cmd = (char **)malloc(MAX_NUM_OF_COMMANDS*sizeof(char *));
-	int argc, split_argc, i, state = 1, connection = 0, read_bytes, sock, client_len;
+	int argc, split_argc, i, state = 1, connection = 0, read_bytes, c_sock, sock, client_len;
 	struct sockaddr_un unix_addr;
 	struct sockaddr_in inet_server_addr;
 	struct sockaddr_in inet_client_addr;

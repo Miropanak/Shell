@@ -5,8 +5,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-int stdout_copy;
-
 void help_msg()
 {
         printf("\t\t\tSHELL\t\t\t\n");
@@ -41,10 +39,8 @@ void create_deamon()
                 perror("setsid()");
                 exit(1); 
         }
-        stdout_copy = dup(1);
-        printf("create deamon %d\n", getpid());
         close(STDIN_FILENO);
-        //close(STDOUT_FILENO);
+        close(STDOUT_FILENO);
         close(STDERR_FILENO);
 }
 

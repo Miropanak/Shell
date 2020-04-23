@@ -17,7 +17,7 @@ char * get_time()
 	int res;
 	char * time = malloc(10 * sizeof(char));
 
-	asm(	"push %2\n\t"
+	asm("push %2\n\t"
 		"push %1\n\t"
 		"mov $116, %%eax\n\t"
 		"push %%eax\n\t"
