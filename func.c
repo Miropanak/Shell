@@ -52,6 +52,16 @@ bool found_pipes(char * line)
     return false;
 }
 
+int count_pipes(char * command)
+{
+    int i, counter = 0;
+    for(i = 0; i < strlen(command); i++){
+        if(command[i] == '|')
+            counter++;
+    }
+    return counter;
+}
+
 bool pipe_redir_out(char * line)
 {
     int i;
