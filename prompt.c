@@ -36,17 +36,17 @@ char * get_time()
 
 char * get_user()
 {
-        uid_t usr_id;
-        struct passwd *pwd;
-		
-        asm ( "movl %1, %%eax\n\t"
-			  "push %%eax\n\t"
-			  "int $0x80"
-            : "=a" (usr_id)
-            : "r" (SYS_getuid));
-		
-        pwd = getpwuid(usr_id);
-        return pwd->pw_name;
+	uid_t usr_id;
+	struct passwd *pwd;
+	
+	asm ( "movl %1, %%eax\n\t"
+			"push %%eax\n\t"
+			"int $0x80"
+		: "=a" (usr_id)
+		: "r" (SYS_getuid));
+	
+	pwd = getpwuid(usr_id);
+	return pwd->pw_name;
 }
 
 char * get_host()

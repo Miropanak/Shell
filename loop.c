@@ -164,8 +164,7 @@ int exec_redirect_out(char ** command, int argc, bool out)
 			perror("open()");
 			exit(1);
 		}
-	}
-		
+	}	
 	else
 		num_of_pipes = argc - 1;
 	
@@ -178,7 +177,7 @@ int exec_redirect_out(char ** command, int argc, bool out)
         }   
     }
 	printf("num od pipes: %d\n", num_of_pipes);
-    while(counter < argc){
+    while((!out && counter < argc) || (out && counter < argc-1)){
         //child
         if((child = fork()) == 0){
 			char ** cmd = (char **)malloc(MAX_COMMANDS_LEN*sizeof(char*));
@@ -187,7 +186,7 @@ int exec_redirect_out(char ** command, int argc, bool out)
             //first command
             if(counter == 0){
 				printf("First cmd:\n");
-				if(out && argc)
+				if(out && argc == 2)
 					dup2(fd, STDOUT_FILENO);
                 else
 					dup2(pipe_fd[1], STDOUT_FILENO);
@@ -201,11 +200,15 @@ int exec_redirect_out(char ** command, int argc, bool out)
             else{
 				printf("Middle cmd:\n");
 				dup2(pipe_fd[counter*2-2], STDIN_FILENO);
-				if(out && counter == argc-2)
-					dup2(fd, STDOUT_FILENO);
+				if(out && counter == argc-2){
+					printf("posledny prikaz\n");
+					close(STDOUT_FILENO);
+					dup(fd);
+				}	
 				else
                 	dup2(pipe_fd[counter*2+1], STDOUT_FILENO);
             }
+
 			if(out && counter == argc-2)
 				close(fd);
 			for(i = 0; i < num_of_pipes*2; i++)
@@ -222,8 +225,6 @@ int exec_redirect_out(char ** command, int argc, bool out)
         } 
         //parent  
         else{
-			if(out && counter == argc-2)
-				break;
             printf("counter: %d\n", counter);
             counter++;
         }
