@@ -13,6 +13,8 @@ int main(int argc, char **argv)
         //mode 2 inet client
         //mode 3 unix server
         //mode 4 inet server
+        //mode 5 unix server deamon
+        //mode 6 inet server deamon
         int port = 0, mode = 0;
         char * sock_path = calloc(20, sizeof(char));
         char * IP_addr = calloc(16, sizeof(char));

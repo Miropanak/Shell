@@ -85,69 +85,7 @@ int exec_cmd(char * command, int argc)
 	return 1;
 }
 
-int exec_multi_pipes(char ** command, int argc)
-{
-	int i, num_of_pipes, *pipe_fd, status, argc_num, counter = 0;
-	pid_t child;
-	num_of_pipes = argc - 1;
-    pipe_fd = malloc(num_of_pipes*2*sizeof(int));
-	//create pipes
-	for(i = 0; i < num_of_pipes; i++){
-        if((pipe(pipe_fd + i*2)) < 0){
-            perror("pipe()");
-            exit(1);
-        }   
-    }
-	printf("num od pipes: %d\n", num_of_pipes);
-    while(counter < argc){
-        //child
-        if((child = fork()) == 0){
-			char ** cmd = (char **)malloc(MAX_COMMANDS_LEN*sizeof(char*));
-			cmd = pars_args(command[counter], " ", &argc_num);
-			print_args(cmd, argc_num);
-            //first command
-            if(counter == 0){
-				printf("First cmd:\n");
-                dup2(pipe_fd[1], STDOUT_FILENO);
-            }
-            //last command
-            else if(counter == argc-1){
-				printf("Last cmd:\n");
-                dup2(pipe_fd[counter*2-2], STDIN_FILENO);
-            }
-            //middle commands
-            else{
-				printf("Middle cmd:\n");
-                dup2(pipe_fd[counter*2-2], STDIN_FILENO);
-                dup2(pipe_fd[counter*2+1], STDOUT_FILENO);
-            }
-			for(i = 0; i < num_of_pipes*2; i++)
-				if(close(pipe_fd[i]) < 0)
-					perror("Close()");
-            if(execvp(cmd[0], cmd) < 0)
-                perror("execvp()");
-            exit(1);
-        }
-        //fork error
-        else if(child < 0){
-            perror("fork()");
-            exit(1);
-        } 
-        //parent  
-        else{
-            printf("counter: %d\n", counter);
-            counter++;
-        }
-    }
-	for(i = 0; i < num_of_pipes*2; i++)
-        close(pipe_fd[i]);
-    for (i = 0; i < 3; i++)
-        wait(&status);
-
-	return 1;
-}
-
-int exec_redirect_out(char ** command, int argc, bool out)
+int exec_pipe_out(char ** command, int argc, bool out)
 {
 	int i, num_of_pipes, *pipe_fd, status, argc_num = argc, counter = 0, fd;
 	pid_t child;
@@ -176,16 +114,14 @@ int exec_redirect_out(char ** command, int argc, bool out)
             exit(1);
         }   
     }
-	printf("num od pipes: %d\n", num_of_pipes);
+	
     while((!out && counter < argc) || (out && counter < argc-1)){
         //child
         if((child = fork()) == 0){
 			char ** cmd = (char **)malloc(MAX_COMMANDS_LEN*sizeof(char*));
 			cmd = pars_args(command[counter], " ", &argc_num);
-			print_args(cmd, argc_num);
             //first command
             if(counter == 0){
-				printf("First cmd:\n");
 				if(out && argc == 2)
 					dup2(fd, STDOUT_FILENO);
                 else
@@ -193,15 +129,12 @@ int exec_redirect_out(char ** command, int argc, bool out)
             }
             //last command
             else if(counter == argc-1){
-				printf("Last cmd:\n");
               	dup2(pipe_fd[counter*2-2], STDIN_FILENO);
             }
             //middle commands
             else{
-				printf("Middle cmd:\n");
 				dup2(pipe_fd[counter*2-2], STDIN_FILENO);
 				if(out && counter == argc-2){
-					printf("posledny prikaz\n");
 					close(STDOUT_FILENO);
 					dup(fd);
 				}	
@@ -225,7 +158,6 @@ int exec_redirect_out(char ** command, int argc, bool out)
         } 
         //parent  
         else{
-            printf("counter: %d\n", counter);
             counter++;
         }
     }
@@ -239,7 +171,7 @@ int exec_redirect_out(char ** command, int argc, bool out)
 	return 1;
 }
 
-int exec_redirect_inout(char ** command, int argc, int in_out)
+int exec_redirect_in(char ** command, int argc)
 {
 	int fd, status, argc_num;
 	pid_t child;
@@ -251,39 +183,29 @@ int exec_redirect_inout(char ** command, int argc, int in_out)
 	if((file_name = get_file_name(command[argc-1])) == NULL)
 		exit(1);
 
-	if(in_out == 0){
-		if((fd = open(file_name, O_RDONLY, S_IRUSR | S_IWUSR)) < 0){
-			perror("open()");
-			_Exit(EXIT_FAILURE);
-		}	
+	if((fd = open(file_name, O_RDONLY, S_IRUSR | S_IWUSR)) < 0){
+		perror("open()");
+		_Exit(EXIT_FAILURE);
 	}
-	else if (in_out == 1){
-		if((fd = open(file_name, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR)) < 0){
-			perror("open()");
-			_Exit(EXIT_FAILURE);
-		}
-	}
-	else
-		return 0;
 		
 	if((child = fork()) == 0){
 		char ** cmd = (char **)malloc(MAX_COMMANDS_LEN*sizeof(char*));
 		cmd = pars_args(command[0], " ", &argc_num);
-		close(in_out);
-		dup(fd);
+		dup2(fd, STDIN_FILENO);
+		close(fd);
 		if(execvp(cmd[0], cmd) < 0){
             perror("execvp()\n");
 			_Exit(EXIT_FAILURE);
 		}
-        else if(child < 0){
-                perror("fork()\n");
-                _Exit(EXIT_FAILURE);
-        }
-        else
-            waitpid(child, &status, WUNTRACED);
 	}
-	close(fd);
-
+	else if(child < 0){
+			perror("fork()\n");
+			_Exit(EXIT_FAILURE);
+	}
+    else{
+		waitpid(child, &status, WUNTRACED);
+		close(fd);
+	}
     return 1;
 }
 
@@ -302,29 +224,24 @@ int execute_commands(char ** command, char * cmd, int argc)
 		}
 	}
 	else if(argc >= 2){
-		if(redirect_output(cmd) && !found_pipes(cmd) && !redirect_input(cmd)){
-        		//printf("a > b\n");
-				//ret_val = exec_redirect_inout(command, argc, 1);
-				ret_val = exec_redirect_out(command, argc, true);
-    		}
-    		//<
-    		else if(redirect_input(cmd) && !found_pipes(cmd) && !redirect_output(cmd)){
-        		//printf("a < b\n");
-    			ret_val = exec_redirect_inout(command, argc, 0);
+		//<
+		if(redirect_input(cmd) && !found_pipes(cmd) && !redirect_output(cmd) && argc == 2){
+			//printf("a < b\n");
+			ret_val = exec_redirect_in(command, argc);
 		}
-    		//||>
-    		else if(redirect_output(cmd) && found_pipes(cmd) && !redirect_input(cmd) && pipe_redir_out(cmd)){
-        		//printf("a | b > c\n");
-				ret_val = exec_redirect_out(command, argc, true);
-    		}
-    		//|||
-    		else if(found_pipes(cmd) && !redirect_output(cmd) && !redirect_input(cmd)){
-        		//printf("a | b | c\n");
-				ret_val = exec_multi_pipes(command, argc);
-    		}
-    		else{
-        		printf("Ambiguous output/input redirect.\n");
-    			return 0;	
+		//||>
+		else if(redirect_output(cmd) && !redirect_input(cmd)){
+			//printf("a | b > c\n");
+			ret_val = exec_pipe_out(command, argc, true);
+		}
+		//|||
+		else if(found_pipes(cmd) && !redirect_output(cmd) && !redirect_input(cmd)){
+			//printf("a | b | c\n");
+			ret_val = exec_pipe_out(command, argc, false);
+		}
+		else{
+			printf("Ambiguous output/input redirect.\n");
+			return 0;	
 		}	
 	}
 	else{

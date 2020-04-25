@@ -62,20 +62,6 @@ int count_pipes(char * command)
     return counter;
 }
 
-bool pipe_redir_out(char * line)
-{
-    int i;
-    bool found_output = false;
-    for(i = 0; i < strlen(line); i++){
-        if(line[i] == '>')
-            found_output = true;
-        if(found_output == true && line[i] == '|')
-            return false;
-    }
-    return true;
-}
-
-
 void print_args(char ** line, int argc)
 {
 	int i;

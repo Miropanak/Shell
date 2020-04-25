@@ -14,7 +14,6 @@ bool redirect_input(char * line);
 bool redirect_output(char * line);
 int count_pipes(char * command);
 bool found_pipes(char * line);
-bool pipe_redir_out(char * line);
 bool check_builtin(char * command);
 int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_addr, int * mode);
 char * get_file_name(char * name);
