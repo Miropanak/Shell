@@ -105,15 +105,18 @@ int exec_pipe_out(char ** command, int argc, bool out)
 	}	
 	else
 		num_of_pipes = argc - 1;
-	
-    pipe_fd = malloc(num_of_pipes*2*sizeof(int));
-	//create pipes
-	for(i = 0; i < num_of_pipes; i++){
-        if((pipe(pipe_fd + i*2)) < 0){
-            perror("pipe()");
-            exit(1);
-        }   
-    }
+
+	if(num_of_pipes > 0){
+		pipe_fd = malloc(num_of_pipes*2*sizeof(int));
+		//create pipes
+		for(i = 0; i < num_of_pipes; i++){
+			if((pipe(pipe_fd + i*2)) < 0){
+				perror("pipe()");
+				exit(1);
+			}   
+		}
+	}
+    	
 	
     while((!out && counter < argc) || (out && counter < argc-1)){
         //child
@@ -135,7 +138,8 @@ int exec_pipe_out(char ** command, int argc, bool out)
             else{
 				dup2(pipe_fd[counter*2-2], STDIN_FILENO);
 				if(out && counter == argc-2){
-					close(STDOUT_FILENO);
+					if(close(STDOUT_FILENO) < 0)
+						perror("close(0)");
 					dup(fd);
 				}	
 				else
@@ -143,10 +147,13 @@ int exec_pipe_out(char ** command, int argc, bool out)
             }
 
 			if(out && counter == argc-2)
-				close(fd);
+				if(close(fd) < 0)
+					perror("close(0)");
+
 			for(i = 0; i < num_of_pipes*2; i++)
 				if(close(pipe_fd[i]) < 0)
-					perror("Close()");
+					perror("Close(1)");
+
             if(execvp(cmd[0], cmd) < 0)
                 perror("execvp()");
             exit(1);
@@ -161,13 +168,20 @@ int exec_pipe_out(char ** command, int argc, bool out)
             counter++;
         }
     }
-	if(out)
-		close(fd);
+	
 	for(i = 0; i < num_of_pipes*2; i++)
-        close(pipe_fd[i]);
-    for (i = 0; i < 3; i++)
-        wait(&status);
+        if(close(pipe_fd[i]) < 0)
+			perror("close(3)");
 
+    for (i = 0; i < counter; i++)
+        wait(&status);
+	
+	if(out){
+		if(close(fd) < 0)
+			perror("close(2)");
+		write(1, "Complete\n", 10);
+	}
+	
 	return 1;
 }
 
@@ -210,7 +224,7 @@ int exec_redirect_in(char ** command, int argc)
 }
 
 int execute_commands(char ** command, char * cmd, int argc)
-{
+{	
 	int ret_val;	
 	if(argc < 1)
 		return 0;
@@ -282,7 +296,7 @@ void shell_loop(int port, char * sock_path, char * IP_addr, int mode)
 		}
 		if(mode == 5){
 			dup2(c_sock, STDOUT_FILENO);
-			write(c_sock, print_prompt(), 50);
+			write(1, print_prompt(), 50);
 		}
 			
 	}
@@ -313,8 +327,9 @@ void shell_loop(int port, char * sock_path, char * IP_addr, int mode)
 			exit(1);
 		}
 		if(mode == 6){
-			dup2(c_sock, STDOUT_FILENO);
-			write(c_sock, print_prompt(), 50);
+			if(dup2(c_sock, STDOUT_FILENO) < 0)
+				perror("dup2()");
+			printf("%s", print_prompt());
 		}	
 	}
 

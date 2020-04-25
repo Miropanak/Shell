@@ -39,9 +39,9 @@ char * get_user()
 	uid_t usr_id;
 	struct passwd *pwd;
 	
-	asm ( "movl %1, %%eax\n\t"
-			"push %%eax\n\t"
-			"int $0x80"
+	asm("movl %1, %%eax\n\t"
+		"push %%eax\n\t"
+		"int $0x80"
 		: "=a" (usr_id)
 		: "r" (SYS_getuid));
 	
@@ -61,16 +61,16 @@ char * get_host()
 	int service = SYS___sysctl;
 	int ret;
 
-	asm ("push %[newlen]\n\t"
-		 "push %[newp]\n\t"
-		 "push %[oldlenp]\n\t"
-		 "push %[oldp]\n\t"
-		 "push %[namelen]\n\t"
-		 "push %[name]\n\t"
-		 "mov %[service], %%eax\n\t"
-		 "push %%eax\n\t"
-		 "int $0x80\n\t"
-		 "add $28, %%esp"
+	asm("push %[newlen]\n\t"
+		"push %[newp]\n\t"
+		"push %[oldlenp]\n\t"
+		"push %[oldp]\n\t"
+		"push %[namelen]\n\t"
+		"push %[name]\n\t"
+		"mov %[service], %%eax\n\t"
+		"push %%eax\n\t"
+		"int $0x80\n\t"
+		"add $28, %%esp"
 		:"=a" (ret)
 		:[service]"r"(service), [name]"r"(name), [namelen]"r"(namelen), [oldp]"r"(hostname),
 		 [oldlenp]"r"(&hostnamelen), [newp]"i"(NULL), [newlen]"i"(0)

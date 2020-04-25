@@ -12,7 +12,6 @@ void error(char * msg)
 char *get_file_name(char * name)
 {
     char *new_name = malloc(20*sizeof(char));
-    printf("name: %s len: %d\n", name, strlen(name));
     if(strlen(name) > 20)
         return NULL;
     int index = 0, i;
@@ -72,7 +71,8 @@ void print_args(char ** line, int argc)
 }
 
 bool check_builtin(char * command)
-{
+{       
+
         if(strcmp(command, "help") == 0)
                 return true;
         else if(strcmp(command, "quit") == 0)

@@ -38,7 +38,7 @@ void unix_client(char * sock_path)
 		}
                 printf("%s", server_msg);
                	do{
-			buff = readline(">>>");
+			buff = readline(">>> ");
 		}while(strlen(buff) == 0);
                 memset(server_msg, '\0', sizeof(server_msg));
 		write(sock, buff, strlen(buff));
@@ -79,7 +79,7 @@ void internet_client(int port, char * IP_addr)
 		}
                	printf("%s", server_msg);
                	do{
-			buff = readline(">>>");
+			buff = readline(">>> ");
 		}while(strlen(buff) == 0);
                 memset(server_msg, '\0', sizeof(server_msg));
 		write(sock, buff, strlen(buff));

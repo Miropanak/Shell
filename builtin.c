@@ -7,43 +7,57 @@
 
 void help_msg()
 {
-        printf("\t\t\tSHELL\t\t\t\n");
-        printf("----------------------------------------------------\n");
-        printf("Author: Miroslav Pavlak\n");
-        printf("NAME\n\tShell -- interactive shell\n");
-        printf("SYNOPSIS\n");
-        printf("\t./shell\n");
-        printf("\t./shell [-u | -ip] \n");
-        printf("\t./shell -c [-u | -ip] \n");
-        printf("\t./shell -c [Builin commands]\n");
-        printf("\t./shell -d [-c] [-u | -ip]\n\n");
+        printf("\t\t\t\t\t  SHELL  \t\t\t\t\t\n"
+        "----------------------------------------------------------------------------------------\n"
+        "Author: Miroslav Pavlak\n\n"
+        "NAME\n\tShell -- interactive shell\n\n"
+        "SYNOPSIS\n"
+        "\t./shell\n"
+        "\t./shell [-chd] [-uip]\n"
+        "\t./shell -c [BUILTINS]\n"
+        "\t./shell [-u <socket_path> | -i <IP_address> -p <port_number>] \n"
+        "\t./shell -c [-u <socket_path> | -i <IP_address> -p <port_number>] \n"
+        "\t./shell -d [-u <socket_path> | -i <IP_address> -p <port_number>]\n\n");
 
-        printf("Builtin commands: \n");
-        printf("\thelp\tshow manual page\n");
-        printf("\tquit\tcancel connection with server shell\n");
-        printf("\thalt\texit shell\n\n");
-        printf("Options:\n");
-        printf("\t-h\n\t\tshow manual page and start shell\n\n");
-        printf("\t-c <builin_command>\n\t\tshell execute builtin command once then exits\n\n");
-        printf("\t-c <-u/-i>\n\t\tshell becomes client, which can connect to another shell using switch -u <socket_path> or -i <IP_address> -p <port_number>\n\n");
-        printf("\t-u <socket_path>\n\t\tspecific unix domain socket path for connection\n\n");
-        printf("\t-i <IP_address>\n\t\tspecific IPv4 adress for shell connection\n\n");
-        printf("\t-p <port_number>\n\t\tspecific port number for shell connection\n\n");
-        printf("\t-d\n\t\tshell behave like deamon\n\n");
-        printf("ARGUMENTS\n");
-        printf("\t<socket_path>\n\t\tunix domain socket path\n");
-        printf("\t<IP_address>\n\t\tIP address, where Shell waits for connection\n");
-        printf("\t<port_number>\n\t\tport number, where Shell waits for connection\n");
-        printf("EXAMPLES: \n");
-        printf("\t./shell -c -help\t\n");
-        printf("\t./shell -c -halt\t\n");
-        printf("\t./shell -u ./sck\t\n");
-        printf("\t./shell -c -u ./sck\t\n");
-        printf("\t./shell -p 54321 \t\n");
-        printf("\t./shell -i 147.175.99.100 -p 54321\t\n");
-        printf("\t./shell -c -t 147.175.99.100 -p 54321\t\n");
-        printf("\t./shell -d -u ./sck\t\n");
-        printf("\t./shell -d -i 147.175.99.100 -p 54321\t\n\n");
+        printf("DESCRIPTION:\n"
+        "\tShell is standart command interpreter compatible with OS FreeBSD 5.2.1. Shell\n"
+        "\tallows execute commands from STDIN, Unix socket or Internet socket. Option -c\n"
+        "\t[-uip] allows shell connects to another shell and then execute commands. Option\n"
+        "\t-d [-uip] makes from normal shell deamon, waiting for connection and executes\n"
+        "\tdemanded commands.\n\n"
+        
+        "\tArgument socket_path should be unix domain socket through which communication\n"
+        "\twill be perfomed. And IP_address should be valid address of listening shell.\n"
+        "\tPort_number should be number of free port between 1024 - 65535.\n\n");
+        
+        printf("BUILTINS: \n"
+        "\thelp\tshow manual page\n"
+        "\tquit\tcancel connection with server shell\n"
+        "\thalt\texit shell\n\n");
+
+        printf("OPTIONS:\n"
+        "\t-c [BUILTINS]\n\t\texecute builtin command once then exit\n\n"
+        "\t-c [-u|ip]\n\t\tmake connection to another shell\n\n"
+        "\t-d [-u|ip]\n\t\tshell behave like deamon, and wait for connection\n\n"
+        "\t-h\n\t\tshow manual page and start shell\n\n"
+        "\t-i <IP_address>\n\t\tspecific IPv4 adress for shell connection\n\n"
+        "\t-p <port_number>\n\t\tspecific port number for shell connection\n\n"
+        "\t-u <socket_path>\n\t\tspecific unix domain socket path for connection\n\n");
+
+        printf("ARGUMENTS\n"
+        "\tsocket_path\n\t\tunix domain socket path for connection\n"
+        "\tIP_address\n\t\tIP address, where Shell waits for connection\n"
+        "\tport_number\n\t\tport number, where Shell waits for connection\n\n");
+
+        printf("EXAMPLES: \n"
+        "\t./shell -c -help\t\n"
+        "\t./shell -u ./sck\t\n"
+        "\t./shell -c -u ./sck\t\n"
+        "\t./shell -p 54321 \t\n"
+        "\t./shell -i 147.175.99.100 -p 54321\t\n"
+        "\t./shell -c -i 147.175.99.100 -p 54321\t\n"
+        "\t./shell -d -u ./sck\t\n"
+        "\t./shell -d -i 147.175.99.100 -p 54321\t\n\n");
 }
 
 void help()
