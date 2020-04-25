@@ -8,7 +8,7 @@
 
 int main(int argc, char **argv)
 {       
-        //mode 0 normal more
+        //mode 0 normal mode
         //mode 1 unix client
         //mode 2 inet client
         //mode 3 unix server

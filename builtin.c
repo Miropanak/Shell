@@ -49,7 +49,7 @@ void help_msg()
         "\tIP_address\n\t\tIP address, where Shell waits for connection\n"
         "\tport_number\n\t\tport number, where Shell waits for connection\n\n");
 
-        printf("EXAMPLES: \n"
+        printf("EXAMPLES:\n"
         "\t./shell -c -help\t\n"
         "\t./shell -u ./sck\t\n"
         "\t./shell -c -u ./sck\t\n"
@@ -58,6 +58,9 @@ void help_msg()
         "\t./shell -c -i 147.175.99.100 -p 54321\t\n"
         "\t./shell -d -u ./sck\t\n"
         "\t./shell -d -i 147.175.99.100 -p 54321\t\n\n");
+
+        printf("ERRORS:\n"
+        "\tBUILTINS do not support in/out redirection or piping commands\n");
 }
 
 void help()

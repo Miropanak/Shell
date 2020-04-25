@@ -89,16 +89,17 @@ int exec_pipe_out(char ** command, int argc, bool out)
 {
 	int i, num_of_pipes, *pipe_fd, status, argc_num = argc, counter = 0, fd;
 	pid_t child;
+	char *file_name, name[20];
 	if(out){
 		num_of_pipes = argc - 2;
-		char *file_name = malloc(20*sizeof(char));
+		file_name = malloc(20*sizeof(char));
 		if(strlen(command[argc - 1]) > 19){
 			error("Too long name of file");
 			exit(1);
 		}
 		if((file_name = get_file_name(command[argc_num -1])) == NULL)
 			exit(1);
-		if((fd = open(file_name, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR)) < 0){
+		if((fd = open(file_name, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR)) < 0){
 			perror("open()");
 			exit(1);
 		}
@@ -179,9 +180,9 @@ int exec_pipe_out(char ** command, int argc, bool out)
 	if(out){
 		if(close(fd) < 0)
 			perror("close(2)");
-		write(1, "Complete\n", 10);
+		sprintf(name, "%s\n", file_name);
+		write(1, name, strlen(name));
 	}
-	
 	return 1;
 }
 
@@ -327,9 +328,8 @@ void shell_loop(int port, char * sock_path, char * IP_addr, int mode)
 			exit(1);
 		}
 		if(mode == 6){
-			if(dup2(c_sock, STDOUT_FILENO) < 0)
-				perror("dup2()");
-			printf("%s", print_prompt());
+			dup2(c_sock, STDOUT_FILENO);
+			write(1, print_prompt(), 50);
 		}	
 	}
 
