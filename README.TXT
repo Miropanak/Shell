@@ -1,5 +1,32 @@
 Author projektu: Miroslav Pavlák
 
+Úvod:
+Napíšte v jazyku C jednoduchý interaktívny "shell" ktorý umožní spúšťať zadané príkazy a bude interpretovať aspoň nasledujúce
+špeciálne znaky: # ; < > | \ . Príkazy musí byť možné zadať zo štandardného vstupu a tiež zo spojení reprezentovaných soketmi.
+Na príkazovom riadku musí byť možné špecifikovať prepínačom -p port číslo portu a prepínačom -u cesta názov lokálneho soketu na
+ktorých bude program cakať na prichádzajúce spojenia. Po spustení s prepínačom -h sa musia vypísať informácie o autorovi, účele
+a použití programu. "Shell" musí poskytovať aspoň nasledujúce interné príkazy: help - výpis informácií ako pri -h,
+quit - ukončenie spojenia z ktorého príkaz prišiel, halt - ukončenie celého programu.
+
+Prednastavený prompt musí pozostávať z mena používateľa, názvu stroja, aktuálneho času a zvoleného ukončovacieho znaku, e.g.
+'16:34 user17@student#'. Na zistenie týchto informácií použite vhodné systémové volania priamo (napr. cez "inline assembler"),
+bez použitia knižničných funkcií. Na formátovanie výstupu, zistenie mena používateľa z UID a pod. môžte v programe využiť bežné
+knižničné funkcie. Spúšťanie príkazov a presmerovanie súborov musia byť implementované pomocou príslušných systémových volaní. Tie
+nemusia byť urobené priamo (cez assembler), avšak knižničná funkcia popen(), prípadne podobná, nesmie byť použitá. Program musí 
+fungovať na stroji student.fiit.stuba.sk. Počas vytvárania programu sa nesmú zobrazovať žiadne varovania a to ani pri zadanom
+prepínači prekladača -Wall.
+
+Bonusové úlohy ktoré som sa rozhodol riešiť:
+9. (3 body) S prepínačom "-c" v kombinácii s "-i", resp. "-u" sa bude program správať ako klient, teda pripojí sa na daný socket
+a bude do neho posielať svoj štandardný vstup a zobrazovať prichádzajúci obsah na výstup.
+11. (2 body) S prepínačom "-i" bude možné zadať aj IP adresu na ktorej bude program očakávať spojenia (nielen port).
+12.	(2 body) Jeden z príkazov bude využívať funkcie implementované v samostatnej knižnici, ktorá bude "prilinkovaná" k hlavnému programu.
+14.	(2 body) Príkazy musia byť rozoznané aj ako argumenty na príkazovom riadku v kombinácii s prepínačom "-c" (interné príkazy ako prepínače,
+-halt, -help), vykonajú sa jednorazovo a program sa ukončí.
+15. (4 body) Program s prepínačom "-d" sa bude správať ako démon (neobsadí terminál), nebude používať štandardný vstup a výstup.
+16. (2 body) Poriadny Makefile.
+17.	(1 bod) Dobré komentáre, resp. dokumentácia, v anglickom jazyku.
+
 Myslím si, že sa mi podarilo spniť všetky požiadavky na zadanie. Program rozpoznáva všetky špeciálne znaky: # ; < > | \. Príkazy
 je možné zadať aj cez štandardný vstup aj zo spojení unixovým či internetovým socketom. Vykonávanie príkazov cez sokety som riešil
 dvomi rozličnými spôsobmi. Ak je shell v móde 3 alebo 4, čiže čaká na prichádzajúce spojenie. Následne vykonáva príkazy, ktoré sú
@@ -29,9 +56,6 @@ Na začiatku som si hovoril načo mi je Makefile a gdb, ale keď som sa s nimi z
 si vytvoril vlastný Makefile, ktorý mi výrazne pomohol pri preklade a linkovaní môjho programu. Taktiež som využil aj gdb,ktorý mi
 nejeden krát pomohol nájsť chybu v programe. Plus ma naozaj milo prekvapilo, čo všetko umožňuje makefile a gdb.
 
-
-
-
 Manuál na obsluhu:
 ./shell - spustenie shellu v normálnom móde, t.j. po spustení je možné zadávať príkazy na STDIN a výstupy sú zobrazené na STDOUT
 
@@ -52,12 +76,6 @@ Manuál na obsluhu:
 ./shell -i <IP_address> -p <port_number> - prepnutie shellu do módu 4, shell čaká na spojenie na internetovom sockete
 
 ./shell -c -i <IP_address> -p <port_number> - prepnutie shellu do módu 2, shell sa pripojí na konkrétny internetový socket, na ktorom počúva druhý shell
-
-
-Interné príkazy:
-help    zobrazenie manuálu k programu
-quit    klient ukončí spojenie so serverom, na ktorom bol pripojený
-halt    ukončenie programu
 
 Splnené bonusové úlohy:
 9. (3 body) S prepínačom "-c" v kombinácii s "-i", resp. "-u" sa bude program správať ako klient, teda pripojí sa na daný socket
