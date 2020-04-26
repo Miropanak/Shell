@@ -17,20 +17,21 @@ char * get_time()
 	int res;
 	char * time = malloc(10 * sizeof(char));
 
-	asm("push %2\n\t"
-		"push %1\n\t"
-		"mov $116, %%eax\n\t"
-		"push %%eax\n\t"
-		"int $0x80\n\t"
-		"add $12, %%esp"
+	asm("push %2\n\t"						//push argument to stack
+		"push %1\n\t"						//push argument to stack
+		"mov $116, %%eax\n\t"				//mov number of system call to eax
+		"push %%eax\n\t"					//push number of system call to stack			
+		"int $0x80\n\t"						//interupt 80
+		"add $12, %%esp"					//move esp back
 		:"=a" (res)
 		:"r"(&time_v), "r"(&time_z)
 		:"memory");
 
-	int sec = time_v.tv_sec % 86400; //seconds in the day;
-	int hour = sec/3600 + 2;
-	int minutes = sec%3600/60;
-	sprintf(time, "%02d:%02d", hour, minutes);
+	
+	int sec = time_v.tv_sec % 86400; 				//number of seconds from 00:00				
+	int hour = sec/3600 + 2;						//calculate actual hours		
+	int minutes = sec%3600/60;						//calculate actual minutes
+	sprintf(time, "%02d:%02d", hour, minutes);		//time formatting
 	return time;
 }
 
@@ -39,9 +40,9 @@ char * get_user()
 	uid_t usr_id;
 	struct passwd *pwd;
 	
-	asm("movl %1, %%eax\n\t"
-		"push %%eax\n\t"
-		"int $0x80"
+	asm("movl %1, %%eax\n\t"			//mov number of system call to eax
+		"push %%eax\n\t"				//push number of system call to stack
+		"int $0x80"						//interupt 80
 		: "=a" (usr_id)
 		: "r" (SYS_getuid));
 	
@@ -61,15 +62,15 @@ char * get_host()
 	int service = SYS___sysctl;
 	int ret;
 
-	asm("push %[newlen]\n\t"
-		"push %[newp]\n\t"
-		"push %[oldlenp]\n\t"
-		"push %[oldp]\n\t"
-		"push %[namelen]\n\t"
-		"push %[name]\n\t"
-		"mov %[service], %%eax\n\t"
-		"push %%eax\n\t"
-		"int $0x80\n\t"
+	asm("push %[newlen]\n\t"			//push argument to stack
+		"push %[newp]\n\t"				//push argument to stack
+		"push %[oldlenp]\n\t"			//push argument to stack
+		"push %[oldp]\n\t"				//push argument to stack
+		"push %[namelen]\n\t"			//push argument to stack	
+		"push %[name]\n\t"				//push argument to stack
+		"mov %[service], %%eax\n\t"		//mov number of system call to eax	
+		"push %%eax\n\t"				//push number of system call to stack	
+		"int $0x80\n\t"					//interupt 80
 		"add $28, %%esp"
 		:"=a" (ret)
 		:[service]"r"(service), [name]"r"(name), [namelen]"r"(namelen), [oldp]"r"(hostname),
@@ -85,7 +86,6 @@ char * get_host()
 	return hostname;
 }
 
-//funkcia na vypisanie promptu
 char * print_prompt()
 {
 	char * prompt = malloc(50 * sizeof(char));

@@ -4,11 +4,13 @@
 #include <unistd.h>
 #include "func.h"
 
+//error message function
 void error(char * msg)
 {
         printf("Error: %s\n", msg);
 }
 
+//get file name without spaces
 char *get_file_name(char * name)
 {
     char *new_name = malloc(20*sizeof(char));
@@ -24,6 +26,7 @@ char *get_file_name(char * name)
     return new_name;
 }
 
+//check for sigh '<'
 bool redirect_input(char * line)
 {
     int i;
@@ -33,6 +36,7 @@ bool redirect_input(char * line)
     return false;
 }
 
+//check for sigh '>'
 bool redirect_output(char * line)
 {
     int i;
@@ -42,6 +46,7 @@ bool redirect_output(char * line)
     return false;
 }
 
+//finding pipes in command
 bool found_pipes(char * line)
 {
     int i;
@@ -51,6 +56,7 @@ bool found_pipes(char * line)
     return false;
 }
 
+//counting pipes in command
 int count_pipes(char * command)
 {
     int i, counter = 0;
@@ -61,15 +67,7 @@ int count_pipes(char * command)
     return counter;
 }
 
-void print_args(char ** line, int argc)
-{
-	int i;
-	printf("Arguments: ");
-	for(i = 0; i < argc; i++)
-		printf("%s ", line[i]);
-	printf("\n");
-}
-
+//check for builtin command
 bool check_builtin(char * command)
 {       
 
@@ -82,6 +80,7 @@ bool check_builtin(char * command)
         else return false;
 }
 
+//check if inserted is valid number composed only from numbers 
 bool is_number(char * num)
 {
         int i;
@@ -94,12 +93,12 @@ bool is_number(char * num)
         return true;
 }
 
-//funkcia skontroluje spravnost zadaneho portu
+//check if port number is number between 1024 and 65535
 bool check_port(char * port_num)
 {       
         if(is_number(port_num)){
                 int port = atoi(port_num);
-                if(port >= 0 && port <= 65535)
+                if(port >= 1024 && port <= 65535)
                         return true;
                 else
                         return false;
@@ -107,6 +106,7 @@ bool check_port(char * port_num)
         return false;      
 }
 
+//check if socket path is not too long
 bool check_sock_path(char * sock_path)
 {
         if(strlen(sock_path) > 100){
@@ -117,6 +117,7 @@ bool check_sock_path(char * sock_path)
 
 }
 
+//function for findinf specific option [-ciudph] in arguments
 bool find_arg(int argc, char ** args, char *arg)
 {
         int i;
@@ -127,6 +128,7 @@ bool find_arg(int argc, char ** args, char *arg)
         return false;
 }
 
+ //checking for OPTIONS [-ciudp] and arguments IP_address, port_number and socket_path
 int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_addr, int * mode)
 {
         int i;
@@ -134,6 +136,7 @@ int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_ad
                 if(strcmp(argv[i], "-h") == 0)
                         help_msg();
                 else if(strcmp(argv[i], "-p") == 0){
+                        //check if after options -p is valid port number
                         if(i+1 < argc && check_port(argv[i+1])){
                                 *port = atoi(argv[++i]);
                                 if(*mode != 1 && *mode != 2 && !find_arg(argc, argv, "-d"))
@@ -148,8 +151,10 @@ int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_ad
                         }
                 }
                 else if(strcmp(argv[i], "-u") == 0){
+                        //check if after options -u is valid socket path
                         if(i+1 < argc && check_sock_path(sock_path)){
                                 strcpy(sock_path, argv[++i]);
+                                //check if options -d is in arguments
                                 if(*mode != 1 && *mode != 2 && !find_arg(argc, argv, "-d"))
                                         *mode = 3;
                                 else if(*mode != 1 && *mode != 2 && find_arg(argc, argv, "-d"))
@@ -161,6 +166,7 @@ int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_ad
                                 exit(1);
                         }
                 }
+                //check if after options -i is valid IPv4 address
                 else if(strcmp(argv[i], "-i") == 0){
                         if(i+1 < argc && strlen(argv[i+1]) < 16){
                                 strcpy(IP_addr, argv[++i]);
@@ -171,31 +177,41 @@ int check_args(int argc, char **argv, int * port, char * sock_path, char * IP_ad
                                 exit(1);
                         }
                 }
+                //check if it will be unix client or internet client
                 else if((strcmp(argv[i], "-c") == 0) && (find_arg(argc, argv, "-p") || find_arg(argc, argv, "-u"))){
                         if(find_arg(argc, argv, "-u"))
                                 *mode = 1;
                         else
                                 *mode = 2;	
                 }
+                //check for builtin command help
                 else if(((strcmp(argv[i], "-help") == 0) && find_arg(argc, argv, "-c")) || ((strcmp(argv[i], "-c") == 0) && find_arg(argc, argv, "-help"))){
-                        help();
+                        printf("%s", help_msg());
                         return -1;       
                 }
+                //check for builtin command halt
                 else if(((strcmp(argv[i], "-halt") == 0) && find_arg(argc, argv, "-c")) || ((strcmp(argv[i], "-c") == 0) && find_arg(argc, argv, "-halt"))){
                         printf("Closing shell...\n");
                         return -1;
                 }
+                //check for builtin command quit
+                else if(((strcmp(argv[i], "-quit") == 0) && find_arg(argc, argv, "-c")) || ((strcmp(argv[i], "-c") == 0) && find_arg(argc, argv, "-quit"))){
+                        printf("There is no connection to quit.\n");
+                        return -1;
+                }
+                //check for option -d for creating deamon
 		else if((strcmp(argv[i], "-d") == 0)){
                         create_deamon();
+                        //check if options -u or -i
                         if(!find_arg(argc, argv, "-u") && !find_arg(argc, argv, "-i")){
                                 exit(1);
                         }
                 }
+                //invalid arguments
                 else{
 			error("Invalid Arguments\n");
                        	return -1; 
                 }
-         
         }
         return 0;
 }

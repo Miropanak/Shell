@@ -1,13 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 
-void help_msg()
-{
-        printf("\t\t\t\t\t  SHELL  \t\t\t\t\t\n"
+//create manual page
+char * help_msg()
+{       
+        char * man_page = calloc(2048, sizeof(char));
+        char page[] = {"\t\t\t\t\t  SHELL  \t\t\t\t\t\n"
         "----------------------------------------------------------------------------------------\n"
         "Author: Miroslav Pavlak\n\n"
         "NAME\n\tShell -- interactive shell\n\n"
@@ -17,9 +20,9 @@ void help_msg()
         "\t./shell -c [BUILTINS]\n"
         "\t./shell [-u <socket_path> | -i <IP_address> -p <port_number>] \n"
         "\t./shell -c [-u <socket_path> | -i <IP_address> -p <port_number>] \n"
-        "\t./shell -d [-u <socket_path> | -i <IP_address> -p <port_number>]\n\n");
+        "\t./shell -d [-u <socket_path> | -i <IP_address> -p <port_number>]\n\n"
 
-        printf("DESCRIPTION:\n"
+        "DESCRIPTION:\n"
         "\tShell is standart command interpreter compatible with OS FreeBSD 5.2.1. Shell\n"
         "\tallows execute commands from STDIN, Unix socket or Internet socket. Option -c\n"
         "\t[-uip] allows shell connects to another shell and then execute commands. Option\n"
@@ -28,28 +31,28 @@ void help_msg()
         
         "\tArgument socket_path should be unix domain socket through which communication\n"
         "\twill be perfomed. And IP_address should be valid address of listening shell.\n"
-        "\tPort_number should be number of free port between 1024 - 65535.\n\n");
+        "\tPort_number should be number of free port between 1024 - 65535.\n\n"
         
-        printf("BUILTINS: \n"
+        "BUILTINS: \n"
         "\thelp\tshow manual page\n"
         "\tquit\tcancel connection with server shell\n"
-        "\thalt\texit shell\n\n");
+        "\thalt\texit shell\n\n"
 
-        printf("OPTIONS:\n"
+        "OPTIONS:\n"
         "\t-c [BUILTINS]\n\t\texecute builtin command once then exit\n\n"
         "\t-c [-u|ip]\n\t\tmake connection to another shell\n\n"
         "\t-d [-u|ip]\n\t\tshell behave like deamon, and wait for connection\n\n"
         "\t-h\n\t\tshow manual page and start shell\n\n"
         "\t-i <IP_address>\n\t\tspecific IPv4 adress for shell connection\n\n"
         "\t-p <port_number>\n\t\tspecific port number for shell connection\n\n"
-        "\t-u <socket_path>\n\t\tspecific unix domain socket path for connection\n\n");
+        "\t-u <socket_path>\n\t\tspecific unix domain socket path for connection\n\n"
 
-        printf("ARGUMENTS\n"
+        "ARGUMENTS\n"
         "\tsocket_path\n\t\tunix domain socket path for connection\n"
         "\tIP_address\n\t\tIP address, where Shell waits for connection\n"
-        "\tport_number\n\t\tport number, where Shell waits for connection\n\n");
+        "\tport_number\n\t\tport number, where Shell waits for connection\n\n"
 
-        printf("EXAMPLES:\n"
+        "EXAMPLES:\n"
         "\t./shell -c -help\t\n"
         "\t./shell -u ./sck\t\n"
         "\t./shell -c -u ./sck\t\n"
@@ -57,17 +60,16 @@ void help_msg()
         "\t./shell -i 147.175.99.100 -p 54321\t\n"
         "\t./shell -c -i 147.175.99.100 -p 54321\t\n"
         "\t./shell -d -u ./sck\t\n"
-        "\t./shell -d -i 147.175.99.100 -p 54321\t\n\n");
+        "\t./shell -d -i 147.175.99.100 -p 54321\t\n\n"
 
-        printf("ERRORS:\n"
-        "\tBUILTINS do not support in/out redirection or piping commands\n");
+        "ERRORS:\n"
+        "\tBUILTINS do not support in/out redirection or piping commands\n"};
+
+        strncpy(man_page, page, 2048);
+        return man_page;
 }
 
-void help()
-{
-        help_msg();
-}
-
+//make deamon from shell
 void create_deamon()
 {
         pid_t pid, sid;
@@ -88,8 +90,8 @@ void create_deamon()
                 perror("setsid()");
                 exit(1); 
         }
-        close(STDIN_FILENO);
-        close(STDOUT_FILENO);
-        close(STDERR_FILENO);
+        close(STDIN_FILENO);            //closing stdin
+        close(STDOUT_FILENO);           //closing stdout
+        close(STDERR_FILENO);           //closing stderr
 }
 
